@@ -1,0 +1,110 @@
+services:
+  # PostgreSQL para n8n (sin cambios)
+  postgres:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD: n8n
+      POSTGRES_DB: n8n
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # PostgreSQL separado para migraciones personalizadas
+  postgres-migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: svbdvsn
+      POSTGRES_PASSWORD: svbdvsn123
+      POSTGRES_DB: svbdvsn
+      POSTGRES_LOG_STATEMENT: all
+      POSTGRES_LOG_MIN_DURATION_STATEMENT: 0
+    ports:
+      - "5433:5432" # Puerto diferente para evitar conflictos
+    volumes:
+      - postgres_migrations_data:/var/lib/postgresql/data
+      - ./tools:/tools
+      - ./db:/db
+
+  n8n:
+    image: n8nio/n8n:1.100.1
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      # Configuración básica N8N
+      - TZ=America/Santiago
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=svbdvsn@svbdvsn.cl
+      - N8N_BASIC_AUTH_PASSWORD=Svbdvsn123
+      - N8N_USER_MANAGEMENT_DISABLED=true
+      - N8N_PUSH_BACKEND=websocket
+
+      # Exportación de workflows a archivos
+      - N8N_IMPORT_EXPORT_USE_FILE_SYSTEM=true
+      - N8N_IMPORT_EXPORT_OVERWRITE_FILE=true
+
+      # Configuración para usar Postgres
+      - DB_TYPE=postgres
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD=n8n
+
+      # Configuración de google auth
+      - GOOGLE_APPLICATION_CREDENTIALS=/home/node/.config/gcloud/application_default_credentials.json
+
+      # n8n payload size max
+      - N8N_PAYLOAD_SIZE_MAX=500
+      - N8N_FORMDATA_FILE_SIZE_MAX=501
+      - N8N_PROCESS_TIMEOUT=300000
+
+      # configuracion n8n
+      - N8N_RUNNERS_ENABLED=false
+      - OFFLOAD_MANUAL_EXECUTIONS_TO_WORKERS=false
+      - EXECUTIONS_MODE=regular
+      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=none
+      - EXECUTIONS_DATA_SAVE_ON_ERROR=all
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=48
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_DIAGNOSTICS_ENABLED=false
+
+      # guardado de binarios en filesystem
+      - N8N_DEFAULT_BINARY_DATA_MODE=filesystem
+      - N8N_BINARY_DATA_STORAGE_PATH=/home/node/files/binaryData
+
+      # configuracion n8n ports
+      # - N8N_HOST=turbotimn8n.duckdns.org
+      # - N8N_PORT=5678
+      # - N8N_PROTOCOL=https
+      # - WEBHOOK_URL=https://turbotimn8n.duckdns.org/
+      - N8N_EDITOR_BASE_URL=http://localhost:5678
+      # - N8N_PUSH_BACKEND=websocket
+      # - VUE_APP_URL_BASE_API=https://turbotimn8n.duckdns.org/
+    volumes:
+      # carpeta versionada
+      - ./workflows:/files/workflows
+      # scripts           
+      - ./tools:/tools
+      # credenciales        
+      - n8n_data:/home/node/.n8n
+      # google auth
+      - ./gcloud/key.json:/home/node/.gcloud/key.json:ro
+      - ./gcloud:/home/node/.config/gcloud
+      # binarios
+      - ./files/binaryData:/home/node/files/binaryData
+    depends_on:
+      - postgres
+
+volumes:
+  n8n_data:
+  postgres_data:
+  postgres_migrations_data:
