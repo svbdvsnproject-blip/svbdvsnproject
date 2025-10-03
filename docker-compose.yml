@@ -48,8 +48,8 @@ services:
       - N8N_SECURE_COOKIE=false
       - N8N_HOST=n8n.sacredheartpreciousblood.com
       - N8N_PORT=5678
-      - N8N_PROTOCOL=http
-      - WEBHOOK_URL=http://n8n.sacredheartpreciousblood.com/
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://n8n.sacredheartpreciousblood.com/
 
       # Exportación de workflows a archivos
       - N8N_IMPORT_EXPORT_USE_FILE_SYSTEM=true
@@ -88,8 +88,8 @@ services:
 
       # configuracion n8n ports
       # - N8N_HOST=turbotimn8n.duckdns.org
-      - N8N_PORT=5678
-      - N8N_PROTOCOL=https
+      #- N8N_PORT=5678
+      #- N8N_PROTOCOL=https
       # - WEBHOOK_URL=https://turbotimn8n.duckdns.org/
       - N8N_EDITOR_BASE_URL=n8n.sacredheartpreciousblood.com
       # - N8N_PUSH_BACKEND=websocket
