@@ -104,6 +104,20 @@ services:
     depends_on:
       - postgres
 
+    # === Reverse proxy con HTTPS automático (Let's Encrypt) ===
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - n8n
+      
 volumes:
   n8n_data:
   postgres_data:
