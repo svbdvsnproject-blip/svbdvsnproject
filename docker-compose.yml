@@ -45,13 +45,18 @@ services:
       - N8N_BASIC_AUTH_PASSWORD=Svbdvsn123
       - N8N_USER_MANAGEMENT_DISABLED=true
       - N8N_PUSH_BACKEND=websocket
+      - N8N_SECURE_COOKIE=false
+      - N8N_HOST=svbdvsnproject.duckdns.org
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://svbdvsnproject.duckdns.org:5678/
 
       # Exportación de workflows a archivos
       - N8N_IMPORT_EXPORT_USE_FILE_SYSTEM=true
       - N8N_IMPORT_EXPORT_OVERWRITE_FILE=true
 
       # Configuración para usar Postgres
-      - DB_TYPE=postgres
+      - DB_TYPE=postgresdb
       - DB_POSTGRESDB_HOST=postgres
       - DB_POSTGRESDB_PORT=5432
       - DB_POSTGRESDB_DATABASE=n8n
@@ -83,10 +88,10 @@ services:
 
       # configuracion n8n ports
       # - N8N_HOST=turbotimn8n.duckdns.org
-      # - N8N_PORT=5678
-      # - N8N_PROTOCOL=https
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
       # - WEBHOOK_URL=https://turbotimn8n.duckdns.org/
-      - N8N_EDITOR_BASE_URL=http://localhost:5678
+      - N8N_EDITOR_BASE_URL=svbdvsnproject.duckdns.org:5678
       # - N8N_PUSH_BACKEND=websocket
       # - VUE_APP_URL_BASE_API=https://turbotimn8n.duckdns.org/
     volumes:
@@ -103,8 +108,7 @@ services:
       - ./files/binaryData:/home/node/files/binaryData
     depends_on:
       - postgres
-
-    # === Reverse proxy con HTTPS automático (Let's Encrypt) ===
+  # === Reverse proxy con HTTPS automático (Let's Encrypt) ===
   caddy:
     image: caddy:2
     restart: unless-stopped
@@ -117,8 +121,9 @@ services:
       - caddy_config:/config
     depends_on:
       - n8n
-      
 volumes:
   n8n_data:
   postgres_data:
   postgres_migrations_data:
+  caddy_data:
+  caddy_config:
